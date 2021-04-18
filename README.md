@@ -7,13 +7,11 @@
 
 **Git for IRIS** is a Source Control package that aims to facilitate a  **native integration of the Git workflow** with the InterSystems IRIS platform.
 
-Similar to Caché Tortoize Git and Port, it keeps a *code directory* in sync with the internal packages that can be put under source control with Git. However, it is designed to work as a transparent link between IRIS and Git that, once setup, require no user interaction.
+Similar to Caché Tortoize Git and Port, it keeps a *code directory* in sync with the internal packages that can be put under source control with Git. However, it is designed to work as a transparent link between IRIS and Git that, once setup, requires no user interaction.
 
 ## How it works
 
 ### Basic principles 
-
-The fundamental principle is: **Edit code in IRIS. Manage code in Git.**
 
 - **Server-based:** Git for IRIS runs on the IRIS server (not in Studio).
 - **Tasks performed in IRIS:** Create and edit classes. Nothing else, source control-wise.
@@ -37,13 +35,15 @@ docker-compose up -d
 
 - Access the source control menu, e. g. in a [production](http://localhost:9092/csp/user/EnsPortal.ProductionConfig.zen?PRODUCTION=dc.PackageSample.NewProduction), and click **Enable Source Control**.
 
-############# IMAGE #########
+![](images/Source-control-menu.png)
 
-The source control output window can be opened by clicking on the second item. 
+The source control output window can be opened by clicking on the second item: 
+
+![](images/Source-control-output.png)
 
 ## Usage
 
-Git for IRIS is used with a git client. You may use the command line Git client or an IDE like VSCode (optionally with Remote SSH). In this docker example, the git client will be used within the docker image. In the terminal window, run:
+Git for IRIS is used with a Git client. You may use the command line Git client or an IDE like VSCode (optionally with Remote SSH). In this docker example, the `git` client will be used within the docker image. In the terminal window, run:
 
 ```
 docker-compose exec -u 52773 iris-git /bin/bash
@@ -52,7 +52,7 @@ cd /opt/iriscode
 
 ### Usage example
 
-You may now edit some code in IRIS. As an example, go to **[Interoperability > Business Process Designer](http://localhost:9092/csp/user/EnsPortal.BPLEditor.zen?$NAMESPACE=USER&$NAMESPACE=USER&)** and create a new BPL process. Save it in package `dc.PackageSample` as `SampleBPLProcess`. Since the `dc.PackageSample` package is under source control, it will be exported. In the docker terminal, run:
+You may now edit some code in IRIS. As an example, go to **[Interoperability > Business Process Designer](http://localhost:9092/csp/user/EnsPortal.BPLEditor.zen?$NAMESPACE=USER&$NAMESPACE=USER&)** and create a new BPL process. Save it in package `dc.PackageSample` as `SampleBPLProcess`. Since the `dc.PackageSample` package is under source control, it will be exported to `/opt/iriscode`. In the docker terminal, run:
 
 ```
 git add .
@@ -97,10 +97,9 @@ This workflow extends to all other actions in Git, including working with remote
 ### Details
 
 - **Configuration:** Source control can be configured namespace-wise. Mapping of the Global `Git.*` among multiple namespaces makes them share the same source control configuration.
-- **Code mapping:** This should be used when namespaces share code via package and routine mappings.
-- Git for IRIS is entirely **package-based**. No projects are supported.
+- Git for IRIS is **package-based**. No projects are supported.
 - For each package and its subpackages, there is an "owner" namespace where exporting and importing happens.
-- **Class export format:** UDL.
+- **Class export format** is UDL.
 
 ### Configuration API
 
@@ -110,19 +109,20 @@ do ##class(SourceControl.Git.Utils).AddPackageToSourceControl(<package name>, <n
 do ##class(SourceControl.Git.Utils).RemovePackageFromSourceControl(<package name>)
 ```
 
-Globally (that is, among all namespaces that share the same `^Git.Config` mapping) enable/disable source control synchronization:
+Globally (that is, among all namespaces that share the same `^Git.Config` mapping) enable/disable source control synchronization (same as in the Source Control Menu):
 ```
 do ##class(SourceControl.Git.Utils).SetSourceControlStatus($$$YES / $$$NO)
 ```
-Enabling source control will install the git hooks and export all classes currently under source control to the code directory. If the code directory has gone out-of-sync in the meantime, potential conflicts shall, by design, be managed through Git (`git merge`).
+Enabling source control will install the git hooks and export all classes currently under source control to the code directory. If the code directory has gone out-of-sync in the meantime, IRIS still exports the current internal state of all classes, and potential conflicts shall, by design, be managed through Git (`git merge`).
 
 
 ## TODOs and limitations
 
-Git for IRIS is currently in beta. The core features are implemented and ready to use. Known limitations are:
+**Git for IRIS** is currently in beta. The core features are implemented and ready to use. Known limitations are:
 
 - Currently, only classes are supported.
 - UI controls are rudimentary or not implemented yet (add/remove packages from source control, settings).
+- Log output is rather verbose at the moment.
 - Files and classes will not be deleted at the moment.
 - The REST endpoint for the Git hooks (`/csp/user/sc`) is currently not secured.
 - No git hook is available for `git stash`, so IRIS will not be notified about stashing.
