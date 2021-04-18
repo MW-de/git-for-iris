@@ -10,7 +10,7 @@ FROM $IMAGE
 
 USER root
 
-RUN apt-get update && apt-get install -y git curl
+RUN apt-get update && apt-get install -y git curl nano
 
 
 RUN mkdir /opt/iriscode && chown ${ISC_PACKAGE_IRISUSER}:${ISC_PACKAGE_IRISGROUP} /opt/iriscode && chmod 775 /opt/iriscode

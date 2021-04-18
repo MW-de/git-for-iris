@@ -79,12 +79,7 @@ ClassMethod WriteHookScriptContent(GitBaseDirectory As %String(MAXLEN=255), Hook
 {
 	do Stream.WriteLine("#!/bin/sh")
 	
-	if (HookName = "post-merge") {
-		do Stream.WriteLine("./post-checkout")
-		return $$$OK
-	}
-	
-	if (HookName = "post-checkout") {	
+	if ((HookName = "post-checkout") || (HookName = "post-merge")) {	
 		do Stream.WriteLine("GitCodeDirectoryOnIRIS=""" _ GitBaseDirectory _ """")
 		do Stream.WriteLine("RESTService=""http://localhost:52773/csp/user/sc/onexternalchange""")
 		
