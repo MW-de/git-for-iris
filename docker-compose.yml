@@ -1,0 +1,11 @@
+version: '2.4'
+services:
+  iris-git:
+    image: git-for-iris:0.1
+    restart: unless-stopped
+    ports: 
+      - "9091:1972"
+      - "9092:52773"
+    volumes:
+      - ./:/irisrun/repo
+    cpuset: "0-3"

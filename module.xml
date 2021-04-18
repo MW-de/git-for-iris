@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+  <Document name="git-for-iris.ZPM">
+    <Module>
+      <Name>git-for-iris</Name>
+      <Version>0.1.0</Version>
+      <Packaging>module</Packaging>
+      <SourcesRoot>src</SourcesRoot>
+      <Resource Name="SourceControl.Git.PKG"/>
+      <Resource Name="dc.PackageSample.PKG"/>
+
+      <CSPApplication
+        Path="/csp/user/sc"
+        Url="/csp/user/sc"
+        MatchRoles=":%All"
+        UnauthenticatedEnabled="1"
+        DispatchClass="SourceControl.Git.RESTService"
+      />
+
+      <Invokes>
+        <Invoke Class="SourceControl.Git.Utils" Method="AddDefaultSettings"></Invoke>
+        <Invoke Class="SourceControl.Git.Utils" Method="AddPackageToSourceControl">
+          <Arg>dc.PackageSample</Arg>
+          <Arg>USER</Arg>
+        </Invoke>
+      </Invokes>
+    </Module>
+  </Document>
+</Export>
