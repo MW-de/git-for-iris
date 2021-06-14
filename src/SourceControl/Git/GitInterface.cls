@@ -1,7 +1,7 @@
 Class SourceControl.Git.GitInterface
 {
 
-ClassMethod SearchGitDirectoriesAndInstallHooks(Directory As %String(MAXLEN=255)) As %Status
+ClassMethod SearchGitDirectoriesAndInstallHooks(Directory As %String(MAXLEN=255), Parameters As %ArrayOfDataTypes) As %Status
 {
 	set sc = $$$OK
 	
@@ -17,7 +17,7 @@ ClassMethod SearchGitDirectoriesAndInstallHooks(Directory As %String(MAXLEN=255)
 	 		if ($extract(name, *-4, *) = $replace("/.git", "/", ##class(Utils).#Slash)) {
 	 			write "Installing git hooks into " _ Directory _ "...",!
 	 		
-	 			return ..InstallHooksIntoGitDirectory(Directory)
+	 			return ..InstallHooksIntoGitDirectory(Directory, Parameters)
 	 		}
 	 		
 	 		// otherwise, keep searching deeper
@@ -31,7 +31,7 @@ ClassMethod SearchGitDirectoriesAndInstallHooks(Directory As %String(MAXLEN=255)
 
 // <var>Directory</var> = The /path/to/dir
 
-ClassMethod InstallHooksIntoGitDirectory(GitBaseDirectory As %String(MAXLEN=255)) As %Status
+ClassMethod InstallHooksIntoGitDirectory(GitBaseDirectory As %String(MAXLEN=255), Parameters As %ArrayOfDataTypes) As %Status
 {
 	set hookDir = ##class(%Library.File).Construct(GitBaseDirectory, ".git", "hooks")
 
@@ -40,13 +40,13 @@ ClassMethod InstallHooksIntoGitDirectory(GitBaseDirectory As %String(MAXLEN=255)
 		return $$$ERROR(337, hookDir)
 	}
 
-	set tSC = ..InstallHook(GitBaseDirectory, "post-checkout")
+	set tSC = ..InstallHook(GitBaseDirectory, "post-checkout", Parameters)
 	if ($$$ISERR(tSC)) {
 		write $system.Status.GetErrorText(tSC),!
 		return tSC
 	}
 	
-	set tSC = ..InstallHook(GitBaseDirectory, "post-merge")
+	set tSC = ..InstallHook(GitBaseDirectory, "post-merge", Parameters)
 	if ($$$ISERR(tSC)) {
 		write $system.Status.GetErrorText(tSC),!
 		return tSC
@@ -55,14 +55,14 @@ ClassMethod InstallHooksIntoGitDirectory(GitBaseDirectory As %String(MAXLEN=255)
 	return $$$OK
 }
 
-ClassMethod InstallHook(GitBaseDirectory As %String(MAXLEN=255), HookName As %String) As %Status
+ClassMethod InstallHook(GitBaseDirectory As %String(MAXLEN=255), HookName As %String, Parameters As %ArrayOfDataTypes) As %Status
 {
 	set filename = ##class(%Library.File).Construct(GitBaseDirectory, ".git", "hooks", HookName)
 
 	set fileStream = ##class(%FileCharacterStream).%New()
 	set fileStream.Filename = filename
 	
-	set tSC = ..WriteHookScriptContent(GitBaseDirectory, HookName, .fileStream)
+	set tSC = ..WriteHookScriptContent(GitBaseDirectory, HookName, .fileStream, Parameters)
 	quit:$$$ISERR(tSC) tSC
 	
 	set tSC = fileStream.SaveStream()
@@ -75,15 +75,24 @@ ClassMethod InstallHook(GitBaseDirectory As %String(MAXLEN=255), HookName As %St
 	return tSC
 }
 
-ClassMethod WriteHookScriptContent(GitBaseDirectory As %String(MAXLEN=255), HookName As %String, ByRef Stream As %Stream.Object) As %Status
+ClassMethod WriteHookScriptContent(GitBaseDirectory As %String(MAXLEN=255), HookName As %String, ByRef Stream As %Stream.Object, Parameters As %ArrayOfDataTypes) As %Status
 {
 	do Stream.WriteLine("#!/bin/sh")
 	
 	if ((HookName = "post-checkout") || (HookName = "post-merge")) {	
 		do Stream.WriteLine("GitCodeDirectoryOnIRIS=""" _ GitBaseDirectory _ """")
-		do Stream.WriteLine("RESTService=""http://localhost:52773/csp/user/sc/onexternalchange""")
 		
-		do Stream.WriteLine("curl -X POST -H 'Content-Type:text/plain' -d ""${GitCodeDirectoryOnIRIS}"" ${RESTService}")
+		// write all parameters as shell script variables; Parameters must include Username, Password and RESTServiceURL
+		set key = ""
+		for {
+			set value = Parameters.GetNext(.key)
+			quit:value=""
+			do Stream.WriteLine(key _ "="""_ value _"""")
+		}
+		
+		//do Stream.WriteLine("RESTServiceURL=""http://localhost:52773/csp/user/sc/onexternalchange""")
+		
+		do Stream.WriteLine("curl -X POST -H 'Content-Type:text/plain' -u ""${Username}:${Password}"" -d ""${GitCodeDirectoryOnIRIS}"" ${RESTServiceURL}")
 		return $$$OK
 	}
 	

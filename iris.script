@@ -3,6 +3,11 @@ zn "%SYS"
 Do ##class(Security.Users).UnExpireUserPasswords("*")
 
 
+do ##class(Security.Resources).Create("SourceControl", "Resource for SourceControl.Git REST endpoint", "")
+do ##class(Security.Roles).Create("SourceControl", "Role for SourceControl.Git REST endpoint", "SourceControl:U")
+do ##class(Security.Users).Create("git", "SourceControl", "git", "Technical User for SourceControl.Git REST endpoint")
+
+
 zn "USER"
 zpm "load /opt/irisbuild/ -v":1:1
 

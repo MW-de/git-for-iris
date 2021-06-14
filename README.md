@@ -17,13 +17,20 @@ Similar to Caché Tortoize Git and Port, it keeps a *code directory* in sync wit
 - **Tasks performed in IRIS:** Create and edit classes. Nothing else, source control-wise.
 - **Tasks performed in Git:** `git *`: commit, push/pull, branch switching, merge.
 
+## Change log
+
+### v0.2
+
+- Classes are now compiled after import.
+- The REST endpoint for the Git hooks (`/csp/user/sc`) is now secured by an IRIS user and a (randomly generated) password. A new password is generated every time the source control is (re-)activated and the git hooks are installed.
+
 ## Installation
 
 - Clone repo, build and run the docker image from a terminal window:
 ```
 git clone https://github.com/MW-de/git-for-iris.git
 cd git-for-iris
-docker build -t git-for-iris:0.1 --cpuset-cpus="0-3" .
+docker build -t git-for-iris:0.2 --cpuset-cpus="0-3" .
 docker-compose up -d
 ```
 
@@ -124,7 +131,6 @@ Enabling source control will install the git hooks and export all classes curren
 - UI controls are rudimentary or not implemented yet (add/remove packages from source control, settings).
 - Log output is rather verbose at the moment.
 - Files and classes will not be deleted at the moment.
-- The REST endpoint for the Git hooks (`/csp/user/sc`) is currently not secured.
 - No git hook is available for `git stash`, so IRIS will not be notified about stashing.
 
 ## Acknowledgement

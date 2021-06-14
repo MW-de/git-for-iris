@@ -82,6 +82,28 @@ ClassMethod Import(InternalName, filename, TargetNamespace As %String = {$namesp
 	return ##class(%Compiler.UDL.TextServices).SetTextFromFile(TargetNamespace, InternalName, filename)
 }
 
+// Compiles class(es) <var>InternalName</var> in <var>TargetNamespace</var> with <var>CompileFlags</var>
+
+// Uses %SYSTEM.OBJ.CompileList and takes Package.Class.Name.cls as <var>InternalName</var>
+
+// Supports wildcards such as Package.*.cls
+
+ClassMethod Compile(InternalName, TargetNamespace As %String = {$namespace}, CompileFlags = "cuk") As %Status
+{
+	// Change namespace if necessary
+	If (TargetNamespace '= $namespace) {
+		new $namespace
+		set $namespace = TargetNamespace
+	}
+	
+	// CompileList expects "Package.Class.Name.cls"
+	// Compile expects "Package.Class.Name"
+	// working with InternalName here which includes the extension, so CompileList is used
+	
+	// the .err output is currently unused
+	return ##class(%SYSTEM.OBJ).CompileList(InternalName, CompileFlags, .err)
+}
+
 ClassMethod TraverseDirectory(Directory As %String(MAXLEN=255), ByRef FileList As %ListOfDataTypes) As %Status
 {
 	set sc = $$$OK

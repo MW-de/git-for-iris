@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   iris-git:
-    image: git-for-iris:0.1
+    image: git-for-iris:0.2
     restart: unless-stopped
     ports: 
       - "9091:1972"

@@ -6,7 +6,7 @@ XData Menu
 <MenuBase>
 <Menu Name="%SourceMenu" Type="0">
 <MenuItem Name="Settings" />
-<MenuItem Name="Packages in Source Control" />
+<MenuItem Name="Packages under Source Control" />
 <MenuItem Name="Enable Source Control"/>
 <MenuItem Name="Disable Source Control"/>
 <MenuItem Separator="true"/>
@@ -14,6 +14,8 @@ XData Menu
 <MenuItem Name="Export all" />
 <MenuItem Name="Import all changed" />
 <MenuItem Name="Import all" />
+<MenuItem Name="Compile all changed" />
+<MenuItem Name="Compile all" />
 </Menu>
 </MenuBase>
 }
@@ -65,7 +67,7 @@ Method OnAfterSave(InternalName As %String, Object As %RegisteredObject = {$$$NU
 	set packageName = ##class(Utils).GetSourceControlPackage(InternalName)
 	
 	if (packageName '= "") {
-		write !,"Source Control: " _ InternalName _ " is under source control. Exporting to code directory.",!
+		write !,"Source Control: " _ InternalName _ " is under source control.",!
 		return ##class(Utils).OnInternalChange(InternalName, packageName)
 	}
 	

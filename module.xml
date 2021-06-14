@@ -3,7 +3,7 @@
   <Document name="git-for-iris.ZPM">
     <Module>
       <Name>git-for-iris</Name>
-      <Version>0.1.0</Version>
+      <Version>0.2.0</Version>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="SourceControl.Git.PKG"/>
@@ -13,7 +13,9 @@
         Path="/csp/user/sc"
         Url="/csp/user/sc"
         MatchRoles=":%All"
-        UnauthenticatedEnabled="1"
+        Resource="SourceControl"
+        PasswordAuthEnabled="1"
+        UnauthenticatedEnabled="0"
         DispatchClass="SourceControl.Git.RESTService"
       />
 
