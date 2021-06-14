@@ -90,8 +90,6 @@ ClassMethod WriteHookScriptContent(GitBaseDirectory As %String(MAXLEN=255), Hook
 			do Stream.WriteLine(key _ "="""_ value _"""")
 		}
 		
-		//do Stream.WriteLine("RESTServiceURL=""http://localhost:52773/csp/user/sc/onexternalchange""")
-		
 		do Stream.WriteLine("curl -X POST -H 'Content-Type:text/plain' -u ""${Username}:${Password}"" -d ""${GitCodeDirectoryOnIRIS}"" ${RESTServiceURL}")
 		return $$$OK
 	}

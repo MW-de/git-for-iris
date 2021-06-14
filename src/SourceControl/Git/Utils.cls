@@ -89,15 +89,15 @@ ClassMethod MakeAndWriteError(msg As %String(MAXLEN=255)) As %Status [ Private ]
 
 ClassMethod NamespaceCodeDirectory(Namespace As %String = "") As %String [ CodeMode = expression ]
 {
-..GetSetting("CodeDirectory") _ $zconvert($Translate($select(Namespace'="":Namespace, 1:$znspace),"%"),"U") _ ..#Slash
+##class(%Library.File).Construct(..GetSetting("CodeDirectory"), $zconvert($Translate($select(Namespace'="":Namespace, 1:$znspace),"%"),"U"))
 }
 
 ClassMethod NamespaceFromCodeDirectory(Directory As %String(MAXLEN=255) = "") As %String
 {
-	set codeDirectory = ..GetSetting("CodeDirectory") 
+	set codeDirectory = ..AddSlash(..GetSetting("CodeDirectory"))
 
 	if ($extract(Directory, 1, $length(codeDirectory)) = codeDirectory) {
-		return $piece($extract(Directory, $length(codeDirectory) + 1, *), "/", 1)
+		return $piece($extract(Directory, $length(codeDirectory) + 1, *), ..#Slash, 1)
 	}
 	
 	throw ..MakeError("Error in NamespaceFromCodeDirectory: Invalid path given for file " _ Directory)
@@ -137,9 +137,14 @@ $zstrip(..GetSetting("RESTUrlPrefix"), ">", "/") _ "/" _ $zstrip(..GetSetting("R
 ClassMethod ResetRESTCredentials(Output NewPassword As %String) As %Status
 {
 	set username = ..GetSetting("RESTUsername")
-		
+	set resource = ..GetSetting("SourceControlResource")
+	
+	// temporarily switch to %SYS to access $System.Security
+	new $namespace
+	set $namespace = "%SYS"
+	
 	// Check whether user exists
-	if ('##class(%SYSTEM.SQL.Security).UserExists(username)) {
+	if ('##class(Security.Users).Exists(username)) {
 		return ..MakeAndWriteError("Error: ResetRESTCredentials: User '" _ username _ "' does not exist")
 	}
 	
@@ -149,8 +154,8 @@ ClassMethod ResetRESTCredentials(Output NewPassword As %String) As %Status
 	}
 	
 	// Check whether permissions have been set
-	if ('$System.Security.CheckUserPermission(username, ..GetSetting("SourceControlResource"), "U")) {
-		return ..MakeAndWriteError("Error: ResetRESTCredentials: User '" _ username _ "' does not have access to required resource '" _ ..GetSetting("SourceControlResource") _ "'")
+	if ('$System.Security.CheckUserPermission(username, resource, "U")) {
+		return ..MakeAndWriteError("Error: ResetRESTCredentials: User '" _ username _ "' does not have access to required resource '" _ resource _ "'")
 	}
 	
 	
@@ -401,7 +406,7 @@ ClassMethod IsInSourceControl(InternalName As %String(MAXLEN=255)) As %String
 
 ClassMethod FullExternalName(InternalName As %String(MAXLEN=255), OriginalNamespace As %String = "") As %String [ CodeMode = expression ]
 {
-..NamespaceCodeDirectory(OriginalNamespace)_..ExternalName(InternalName)
+##class(%Library.File).Construct(..NamespaceCodeDirectory(OriginalNamespace), ..ExternalName(InternalName))
 }
 
 ClassMethod SplitFullExternalName(FullExternalName As %String(MAXLEN=255)) As %String
