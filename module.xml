@@ -3,7 +3,8 @@
   <Document name="git-for-iris.ZPM">
     <Module>
       <Name>git-for-iris</Name>
-      <Version>0.2.0</Version>
+      <Version>0.2.1</Version>
+      <Description>Native integration of the Git workflow with the InterSystems IRIS platform</Description>
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
       <Resource Name="SourceControl.Git.PKG"/>
