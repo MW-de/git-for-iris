@@ -414,7 +414,7 @@ ClassMethod SplitFullExternalName(FullExternalName As %String(MAXLEN=255)) As %S
 	// will throw an error on failure
 	set namespace = ..NamespaceFromCodeDirectory(FullExternalName)
 
-	set namespaceDir = ..NamespaceCodeDirectory(namespace)
+	set namespaceDir = ..AddSlash(..NamespaceCodeDirectory(namespace))
 
 	if ($extract(FullExternalName, 1, $length(namespaceDir)) = namespaceDir) {
 		return $lb(namespace, $extract(FullExternalName, $length(namespaceDir) + 1, *))

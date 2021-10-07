@@ -17,7 +17,17 @@ Similar to Caché Tortoize Git and Port, it keeps a *code directory* in sync wit
 - **Tasks performed in IRIS:** Create and edit classes. Nothing else, source control-wise.
 - **Tasks performed in Git:** `git *`: commit, push/pull, branch switching, merge.
 
+![](images/Git_for_IRIS-workflow.png)
+
 ## Change log
+
+### v0.2.2
+
+- Fix path error in Utils.cls
+
+### v0.2.1
+
+- Update module.xml
 
 ### v0.2
 
@@ -109,6 +119,11 @@ This workflow extends to all other actions in Git, including working with remote
 - **Class export format** is UDL.
 
 ### Configuration API
+
+Add global `Git.Config` with default settings to current namespace:
+```
+do ##class(SourceControl.Git.Utils).AddDefaultSettings()
+```
 
 Add/remove package to/from source control:
 ```
