@@ -40,7 +40,7 @@ Similar to Caché Tortoize Git and Port, it keeps a *code directory* in sync wit
 ```
 git clone https://github.com/MW-de/git-for-iris.git
 cd git-for-iris
-docker build -t git-for-iris:0.2 --cpuset-cpus="0-3" .
+./docker-build.sh
 docker-compose up -d
 ```
 
