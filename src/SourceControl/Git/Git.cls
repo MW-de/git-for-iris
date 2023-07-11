@@ -62,16 +62,16 @@ Method OnMenuItem(MenuName As %String, InternalName As %String, SelectedText As 
 Method OnAfterSave(InternalName As %String, Object As %RegisteredObject = {$$$NULLOREF}) As %Status
 {
 	if (##class(Utils).GetSourceControlStatus() '= $$$YES) return $$$OK
-
+	
 	set InternalName = ##class(Utils).NormalizeInternalName(InternalName)
 	set packageName = ##class(Utils).GetSourceControlPackage(InternalName)
 	
 	if (packageName '= "") {
-		write !,"Source Control: " _ InternalName _ " is under source control.",!
+		do ##class(Utils).LogInfo(InternalName _ " is under source control.")
 		return ##class(Utils).OnInternalChange(InternalName, packageName)
 	}
 	
-	write !,"Source Control: " _ InternalName _ " is not under source control.",!
+	do ##class(Utils).LogInfo(InternalName _ " is not under source control.")
 	return $$$OK
 }
 
@@ -91,11 +91,11 @@ Method OnAfterDelete(InternalName As %String) As %Status
 	set packageName = ##class(Utils).GetSourceControlPackage(InternalName)
 	
 	if (packageName '= "") {
-		write !,"Source Control: Item " _ InternalName _ " has been deleted from the database. Automatic deletion of code files is currently disabled, the file will remain in the code directory.",!
-		// return ##class(Utils).DeleteExternalFile(InternalName)
+		do ##class(Utils).LogInfo("Source Control: Item " _ InternalName _ " has been deleted from the database. Now deleting code file...")
+		return ##class(Utils).DeleteExternalFile(InternalName)
 	}
 	
-	quit $$$OK
+	return $$$OK
 }
 
 /// External programs may notify source control that a class or package has changed.

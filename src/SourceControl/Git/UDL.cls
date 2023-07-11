@@ -3,24 +3,42 @@ Include (%occStatus, %occErrors)
 Class SourceControl.Git.UDL
 {
 
-ClassMethod Export(InternalName As %String, filename As %String) As %String
+Parameter ExportFormats = ",cls,lut,";
+
+ClassMethod FormatIsSupported(format As %String) As %Boolean [ CodeMode = expression ]
+{
+..#ExportFormats [ "," _ $zconvert(format, "L") _ ","
+}
+
+ClassMethod Export(InternalName As %String, filename As %String) As %Status
 {
 	set sc = $$$OK
 		
-	set namespace = $namespace
 	set fileDir = $piece(filename,##class(Utils).#Slash,1,*-1)
-	
-	// get class content
-	set sc = ##class(%Compiler.UDL.TextServices).GetTextAsString(namespace, InternalName, .classContent)
-	quit:$$$ISERR(sc) sc
-	
-	// write class content to file
 	
 	if ('##class(%File).DirectoryExists(fileDir)) {
 		if ('##class(%File).CreateDirectoryChain(fileDir)) {
 			quit $$$ERROR(5001,"Cannot create directory: "_fileDir)
 		}
 	}
+
+	set format = $zconvert($piece(InternalName, ".", *), "L")
+
+	if (format = "cls") return ..ExportCLS(InternalName, filename)
+	
+	if (format = "lut") return ..ExportLUT(InternalName, filename)
+	
+	return $$$ERROR($$$GeneralError, "Format not supported: "_format)
+}
+
+/// Using strings, limits file size to MAXSTRING (3.6 MB)
+ClassMethod ExportCLS(InternalName As %String, filename As %String) As %Status
+{
+	set namespace = $namespace
+	
+	// get class content
+	set sc = ##class(%Compiler.UDL.TextServices).GetTextAsString(namespace, InternalName, .classContent)
+	quit:$$$ISERR(sc) sc
 	
 	set fileStream = ##class(%FileCharacterStream).%New()
 	set fileStream.Filename = filename
@@ -33,9 +51,14 @@ ClassMethod Export(InternalName As %String, filename As %String) As %String
 	quit sc
 }
 
+ClassMethod ExportLUT(InternalName As %String, filename As %String) As %Status
+{
+	return ##class(Ens.Util.LookupTable).%Export(filename, $piece(InternalName, ".", 1, *-1))
+}
+
 // todo: possibly replace with $system.OBJ.GetPackageList
 
-/// Retrives all Classes in Package path recursively and adds them to outputList
+/// Retrives all Classes and Lookup Tables in Package path recursively and adds them to outputList
 /// Example: TraversePackage("HS.Local", outputList)
 ClassMethod TraversePackage(path As %String(MAXLEN=255), ByRef outputList As %ListOfDataTypes, sep As %String = ".", level As %Integer = 0, force As %Boolean = 0) As %Status
 {
@@ -73,13 +96,58 @@ ClassMethod TraversePackage(path As %String(MAXLEN=255), ByRef outputList As %Li
         }
     }
     
+    // add lookup tables
+    do ..TraversePackageLUT(path, .outputList)
+    
     kill rs
     quit ec
 }
 
+/// Enumerates all lookup tables and adds those which start with <var>package</var> to <var>outputList</var>
+/// Add trailing . to <var>package</var> to ensure the package name is delimited.
+/// 
+/// Lookup tables will be appended with pSuffix (default: ".lut") in <var>outputList</var>
+/// 
+/// Returns the number of lookup tables added to <var>outputList</var>
+/// 
+/// Example: ##class(SourceControl.Git.UDL).TraversePackageLUT("User.", list)
+ClassMethod TraversePackageLUT(package As %String, ByRef outputList As %ListOfDataTypes, pSuffix As %String = ".lut") As %Integer
+{
+	#dim tLUTs As %ResultSet = ##class(Ens.Util.LookupTable).EnumerateFunc()
+	
+	set n = 0
+	while tLUTs.%Next() {
+		if (##class(Ens.Util.FunctionSet).StartsWith(tLUTs.%Get("Name"), package)) {
+			do outputList.Insert(tLUTs.%Get("Name") _ pSuffix)
+			set n = n + 1
+		}
+	}
+	
+	return n
+}
+
 ClassMethod Import(InternalName, filename, TargetNamespace As %String = {$namespace}) As %Status
 {
+	set format = $zconvert($piece(filename, ".", *), "L")
+
+	if (format = "cls") return ..ImportCLS(InternalName, filename, TargetNamespace)
+	
+	if (format = "lut") return ..ImportLUT(InternalName, filename, TargetNamespace)
+	
+	return $$$ERROR($$$GeneralError, "Format not supported: "_format)
+}
+
+ClassMethod ImportCLS(InternalName, filename, TargetNamespace As %String = {$namespace}) As %Status
+{
 	return ##class(%Compiler.UDL.TextServices).SetTextFromFile(TargetNamespace, InternalName, filename)
+}
+
+ClassMethod ImportLUT(InternalName, filename, TargetNamespace As %String = {$namespace}) As %Status
+{
+	new $namespace
+	set $namespace = TargetNamespace
+	
+	return ##class(Ens.Util.LookupTable).%Import(filename)
 }
 
 // Compiles class(es) <var>InternalName</var> in <var>TargetNamespace</var> with <var>CompileFlags</var>
